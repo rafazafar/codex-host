@@ -59,7 +59,8 @@ const harnessByTransportModel = new Map<string, ExternalHarnessId>(
 export interface CreateRoute {
   harnessId: RoutedHarnessId;
   routeMode?: "native";
-  transportModelId: string;
+  /** Null selects the native Codex default; it is not an external carrier. */
+  transportModelId: string | null;
   model?: HarnessModelRef;
   thinkingOptionId?: HarnessThinkingOptionId;
   permissionModeId?: HarnessPermissionModeId;
@@ -586,8 +587,14 @@ export function decodeExternalTransportModel(
 
 export function decodeCreateRoute(request: JsonRpcRequest): CreateRoute | null {
   if (request.method !== "thread/start") return null;
-  if (!isJsonObject(request.params) || typeof request.params.model !== "string") {
-    throw new Error("thread/start params.model must be text");
+  if (!isJsonObject(request.params)) {
+    throw new Error("thread/start params must be an object");
+  }
+  if (request.params.model == null) {
+    return { harnessId: "codex", transportModelId: null };
+  }
+  if (typeof request.params.model !== "string") {
+    throw new Error("thread/start params.model must be text or null");
   }
 
   const pluginRoute = decodeHarnessPluginRoute(request.params.model);

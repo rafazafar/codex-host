@@ -71,4 +71,35 @@ describe("host-runtime package", () => {
       classifyCreateRequestRoute({ id: 43, method: "thread/read", params: {} }, "codex"),
     ).toBeNull();
   });
+
+  it.each(["codex", "pi"] as const)(
+    "keeps native default Models and helper Threads on Codex with default Agent %s",
+    (defaultAgent) => {
+      for (const params of [
+        {},
+        { model: null },
+        { ephemeral: true, permissions: ":read-only", threadSource: "mcp_extension_host" },
+        { ephemeral: true, model: "official/model" },
+      ]) {
+        expect(
+          classifyCreateRequestRoute({ id: 1, method: "thread/start", params }, defaultAgent),
+        ).toEqual({
+          requestMethod: "thread/start",
+          modelCarrier: "official-model",
+          selectedHarness: "codex",
+          selectionSource: "official-model",
+        });
+      }
+      expect(
+        classifyCreateRequestRoute(
+          {
+            id: 1,
+            method: "thread/start",
+            params: { ephemeral: true, model: "codexhost/pi-native" },
+          },
+          defaultAgent,
+        ),
+      ).toMatchObject({ selectedHarness: "pi", selectionSource: "transport-model" });
+    },
+  );
 });

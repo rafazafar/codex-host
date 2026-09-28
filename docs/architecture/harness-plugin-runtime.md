@@ -161,6 +161,8 @@ Renderer 的 `listHarnessPlugins()` 使用绑定的 RequestManager 发送此固�
 
 此前缀下的非法数据直接报错，不回落到官方 Codex。有效但未安装的插件路由同样不会交给官方 app-server。普通官方模型路由不受影响。既有七种专用编码暂时保留，后续迁移不得直接删除历史读取能力。
 
+原生 `thread/start` 允许省略 `model` 或设为 `null`，表示使用 Codex 的原生默认 Model。Host 保留原始请求并转发给官方 app-server，不补写 Model，也不应用外部默认 Agent。没有外部运输编码的 `ephemeral: true` 请求同样保留官方归属，即使请求带有官方 Model、默认 Agent 为 Pi；Desktop 的 MCP helper Thread（包括 Codex Security）依赖此路径。显式外部运输编码仍优先选择对应 Harness，普通非临时请求的显式官方 Model 仍沿用现有默认 Agent 规则。非字符串、非空的 Model 值继续被拒绝。
+
 ### 只读账号额度
 
 可选 `HarnessAdapter.inspectAccount()` 主动返回当前原生认证的 `HarnessAccountSnapshot`，无真实额度时返回 `null`；不得把会话花费当成账号额度、返回旧认证缓存或为查询发起模型 Turn。原生 SDK、认证和额度解析属于插件；实现负责限制查询耗时及关闭检查资源。该可选扩展兼容未实现能力的插件。

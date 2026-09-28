@@ -259,6 +259,7 @@ export class ModernSessionImportAdapter extends FakeHarnessAdapter {
 
 export function createFixture(
   options: {
+    defaultAgent?: "codex" | "pi";
     environment?: NodeJS.ProcessEnv;
     pluginDirectory?: string;
     externalAdapters?: ReadonlyMap<ExternalHarnessId, FakeHarnessAdapter>;
@@ -297,7 +298,7 @@ export function createFixture(
   const host = new AppServerHost({
     stockCodexPath: "/synthetic/codex",
     arguments: ["app-server"],
-    defaultAgent: "codex",
+    defaultAgent: options.defaultAgent ?? "codex",
     desktopInput,
     desktopOutput,
     diagnosticOutput,

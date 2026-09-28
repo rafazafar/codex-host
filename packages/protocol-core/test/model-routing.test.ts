@@ -100,6 +100,22 @@ describe("external Harness transport model routing", () => {
     expect(decodeCreateRoute({ id: 4, method: "model/list", params: {} })).toBeNull();
   });
 
+  it.each([{}, { model: null }])("accepts the native default Model: %j", (params) => {
+    expect(decodeCreateRoute({ id: 1, method: "thread/start", params })).toEqual({
+      harnessId: "codex",
+      transportModelId: null,
+    });
+  });
+
+  it.each([false, 42, [], {}].map((model) => ({ model })))(
+    "rejects an invalid Model type: $model",
+    ({ model }) => {
+      expect(() => decodeCreateRoute({ id: 1, method: "thread/start", params: { model } })).toThrow(
+        "thread/start params.model must be text or null",
+      );
+    },
+  );
+
   it("round-trips a bounded opaque selected Pi Model Ref", () => {
     const model = harnessModelRefSchema.parse({ id: "pi-model-v1.cHJvdmlkZXItaWQ" });
     const transportModelId = encodePiTransportModel(model);

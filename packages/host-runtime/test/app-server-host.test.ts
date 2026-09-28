@@ -318,6 +318,40 @@ describe("AppServerHost idle resource release", () => {
 });
 
 describe("AppServerHost official forwarding", () => {
+  it.each(["codex", "pi"] as const)(
+    "forwards native helper Threads unchanged with default Agent %s",
+    async (defaultAgent) => {
+      const fixture = createFixture({ defaultAgent });
+      try {
+        await fixture.ready;
+        for (const model of [undefined, null, "official/model"]) {
+          const request = {
+            id: model === undefined ? 1 : model === null ? 2 : 3,
+            method: "thread/start",
+            params: {
+              ephemeral: true,
+              permissions: ":read-only",
+              threadSource: "mcp_extension_host",
+              unknownParam: "opaque",
+              ...(model === undefined ? {} : { model }),
+            },
+          };
+          writeRequest(fixture.desktopInput, request);
+          expect(await readJsonLine(fixture.official.stdin)).toEqual(request);
+          const response = { id: request.id, result: { thread: { id: "native-helper" } } };
+          writeRequest(fixture.official.stdout, response);
+          expect(
+            await fixture.collector.waitFor((message) => requestId(message, request.id)),
+          ).toEqual(response);
+        }
+        expect(fixture.adapter.sessions).toHaveLength(0);
+        expect(await fixture.mappingStore.listThreads()).toEqual([]);
+      } finally {
+        await stopFixture(fixture);
+      }
+    },
+  );
+
   it.each([
     { method: "codexhost/unknown", params: {} },
     {

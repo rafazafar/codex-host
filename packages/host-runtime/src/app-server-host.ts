@@ -476,11 +476,16 @@ export function classifyCreateRequestRoute(
       selectionSource: "transport-model",
     };
   }
+  // Native defaults and temporary helper Threads belong to the official backend.
+  const selectedHarness =
+    route.transportModelId === null || classifyThreadPurpose(request) === "ephemeral"
+      ? "codex"
+      : defaultAgent;
   return {
     requestMethod: "thread/start",
     modelCarrier: "official-model",
-    selectedHarness: defaultAgent,
-    selectionSource: defaultAgent === "pi" ? "default-agent" : "official-model",
+    selectedHarness,
+    selectionSource: selectedHarness === "pi" ? "default-agent" : "official-model",
   };
 }
 
@@ -3208,7 +3213,7 @@ export class AppServerHost {
       route && route.harnessId !== "codex" ? route.permissionModeId : undefined;
     const transportModelId =
       route && route.harnessId === harnessId
-        ? route.transportModelId
+        ? (route.transportModelId ?? transportModelIdForHarness(harnessId))
         : transportModelIdForHarness(harnessId);
     const cwd = params.cwd;
     if (typeof cwd !== "string" || cwd.length === 0) {
